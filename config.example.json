@@ -1,0 +1,10 @@
+{
+  "enabled": true,
+  "minMinutes": 0,
+  "endpoint": "https://ntfy.sh/你的频道",
+  "template": "第 {turn} 轮对话已完成 ({time}) · 用时 {minutes} 分钟",
+  "titleTemplate": "对话已结束",
+  "format": "ntfy",
+  "jsonTemplate": "{\"title\":\"{title}\",\"body\":\"{body}\"}",
+  "aiSummary": false
+}

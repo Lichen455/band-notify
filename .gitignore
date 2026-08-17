@@ -1,0 +1,7 @@
+# 日志与真实配置（含个人频道等敏感信息，不要提交）
+*.log
+band-notify-heartbeat.log
+band-notify-config.json
+band-notify.json
+*.tmp
+node_modules/
