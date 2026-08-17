@@ -110,7 +110,7 @@ window.__ModuleLoader__.load({
 				return slots.register(
 					{ name: "settings.plugin.item", id: "band-notify", order: 30 },
 					function() {
-						var DEFAULT_URL = "https://ntfy.sh/你的频道";
+						var DEFAULT_URL = "https://ntfy.sh/your-topic";
 						var STOPS = [0, 0.5, 1, 2, 3, 5, 8, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240];
 						function idxOf(v) {
 							var i = STOPS.indexOf(v);
@@ -137,6 +137,8 @@ window.__ModuleLoader__.load({
 						var draftTemplate = dTpl[0], setDraftTemplate = dTpl[1];
 						var dAi = react.useState(false);
 						var draftAi = dAi[0], setDraftAi = dAi[1];
+						var dInt = react.useState(true);
+						var draftInteract = dInt[0], setDraftInteract = dInt[1];
 						var dTtl = react.useState("");
 						var draftTitle = dTtl[0], setDraftTitle = dTtl[1];
 						var dFmt = react.useState("ntfy");
@@ -161,6 +163,7 @@ window.__ModuleLoader__.load({
 									format: r.format === "text" || r.format === "json" ? r.format : "ntfy",
 									jsonTemplate: typeof r.jsonTemplate === "string" ? r.jsonTemplate : "",
 									aiSummary: typeof r.aiSummary === "boolean" ? r.aiSummary : false,
+									notifyInteract: typeof r.notifyInteract === "boolean" ? r.notifyInteract : true,
 								};
 								setCurrent(cfg);
 								setDraftEnabled(cfg.enabled);
@@ -171,6 +174,7 @@ window.__ModuleLoader__.load({
 								setDraftFormat(cfg.format);
 								setDraftJsonTemplate(cfg.jsonTemplate);
 								setDraftAi(cfg.aiSummary);
+								setDraftInteract(cfg.notifyInteract);
 							}).catch(function() {});
 							return function() { alive = false; };
 						}, []);
@@ -184,7 +188,8 @@ window.__ModuleLoader__.load({
 							draftTitle !== current.titleTemplate ||
 							draftFormat !== current.format ||
 							draftJsonTemplate !== current.jsonTemplate ||
-							draftAi !== current.aiSummary
+							draftAi !== current.aiSummary ||
+							draftInteract !== current.notifyInteract
 						);
 
 						var save = function() {
@@ -201,6 +206,7 @@ window.__ModuleLoader__.load({
 								format: draftFormat === "text" || draftFormat === "json" ? draftFormat : "ntfy",
 								jsonTemplate: draftJsonTemplate,
 								aiSummary: draftAi === true,
+								notifyInteract: draftInteract === true,
 							};
 							saveConfig(next).then(function(r) {
 								var ok = {
@@ -212,6 +218,7 @@ window.__ModuleLoader__.load({
 									format: r.format === "text" || r.format === "json" ? r.format : next.format,
 									jsonTemplate: typeof r.jsonTemplate === "string" ? r.jsonTemplate : next.jsonTemplate,
 									aiSummary: typeof r.aiSummary === "boolean" ? r.aiSummary : next.aiSummary,
+									notifyInteract: typeof r.notifyInteract === "boolean" ? r.notifyInteract : next.notifyInteract,
 								};
 								setCurrent(ok);
 								setDraftEnabled(ok.enabled);
@@ -222,6 +229,7 @@ window.__ModuleLoader__.load({
 								setDraftFormat(ok.format);
 								setDraftJsonTemplate(ok.jsonTemplate);
 								setDraftAi(ok.aiSummary);
+								setDraftInteract(ok.notifyInteract);
 								setSaving(false);
 							}).catch(function() {
 								setSaving(false);
@@ -238,6 +246,7 @@ window.__ModuleLoader__.load({
 							setDraftFormat(current.format);
 							setDraftJsonTemplate(current.jsonTemplate);
 							setDraftAi(current.aiSummary);
+							setDraftInteract(current.notifyInteract);
 							setFailed(false);
 						};
 
@@ -398,6 +407,22 @@ window.__ModuleLoader__.load({
 										react.createElement("span", { style: HINT }, "鐢ㄦā鍨嬫妸涓婁竴鏉″洖澶嶆€荤粨鎴愬嚑涓瓧锛堝け璐ヨ嚜鍔ㄥ洖閫€鎽樺綍锛?)
 									)
 								),
+								// 浜や簰鎻愰啋锛堟彁闂?瀹℃壒锛?								react.createElement("div", { style: Object.assign({}, FIELD, { borderTop: "1px solid var(--dsw-alias-border-l2)" }) },
+									react.createElement("div", { style: FIELD_HEAD },
+										react.createElement("span", { style: FIELD_LABEL }, "浜や簰鎻愰啋"),
+										draftInteract !== (current ? current.notifyInteract : true) && ready ? react.createElement("button", { type: "button", style: RESET, onClick: function() { setDraftInteract(current.notifyInteract); } }, "閲嶇疆") : null
+									),
+									react.createElement("label", { style: { display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "13px", cursor: "pointer" } },
+										react.createElement("input", {
+											type: "checkbox",
+											checked: draftInteract === true,
+											disabled: !ready,
+											onChange: function(e) { setDraftInteract(e.target.checked); },
+											style: { accentColor: "var(--dsw-alias-brand-primary)", width: "16px", height: "16px" },
+										}),
+										react.createElement("span", { style: HINT }, "AI 鎻愰棶鎴栭渶瑕佸鎵规椂涔熸帹閫侊紙楂樹紭鍏堢骇锛?)
+									)
+								),
 								react.createElement("div", { style: FOOTER },
 									failed ? react.createElement("p", { style: { minWidth: 0, color: "var(--dsw-alias-label-error)", flex: 1, margin: 0, fontSize: "12px", lineHeight: 1.5 } }, "淇濆瓨澶辫触") : null,
 									react.createElement("button", {
@@ -424,7 +449,7 @@ window.__ModuleLoader__.load({
 				return slots.register(
 					{ name: "settings.general.item", id: "band-notify-settings" },
 					function() {
-						var DEFAULT_URL = "https://ntfy.sh/你的频道";
+						var DEFAULT_URL = "https://ntfy.sh/your-topic";
 						var STOPS = [0, 0.5, 1, 2, 3, 5, 8, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240];
 						function idxOf(v) {
 							var i = STOPS.indexOf(v);

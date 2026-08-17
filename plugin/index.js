@@ -5,13 +5,13 @@ import z from '@deepseek-ai/schemastery'
 import { installSettingsSection, settingsNamespace } from '@deepseek-ai/dsh-settings'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 
-const DEFAULT_URL = 'https://ntfy.sh/你的频道'
+const DEFAULT_URL = 'https://ntfy.sh/your-topic'
 const DEFAULT_TEMPLATE = '绗?{turn} 杞璇濆凡瀹屾垚 ({time}) 路 鐢ㄦ椂 {minutes} 鍒嗛挓'
 const DEFAULT_TITLE = '瀵硅瘽宸茬粨鏉?
 const HEARTBEAT_PATH = 'C:/Users/24251/.dsh/band-notify-heartbeat.log'
 const NS = settingsNamespace('band-notify')
 
-const DEFAULT_CONFIG = { enabled: true, minMinutes: 0, endpoint: DEFAULT_URL, template: DEFAULT_TEMPLATE, titleTemplate: DEFAULT_TITLE, format: 'ntfy', jsonTemplate: '', aiSummary: false }
+const DEFAULT_CONFIG = { enabled: true, minMinutes: 0, endpoint: DEFAULT_URL, template: DEFAULT_TEMPLATE, titleTemplate: DEFAULT_TITLE, format: 'ntfy', jsonTemplate: '', aiSummary: false, notifyInteract: true }
 
 const Config = z.object({
   enabled: z.boolean().default(true),
@@ -22,6 +22,7 @@ const Config = z.object({
   format: z.union(['ntfy', 'text', 'json']).default('ntfy'),
   jsonTemplate: z.string().default(''),
   aiSummary: z.boolean().default(false),
+  notifyInteract: z.boolean().default(true),
 })
 
 function beat(line) {
@@ -100,7 +101,7 @@ function renderBody(template, vars) {
 const SENDER = [
   "const http = require('http');",
   "const https = require('https');",
-  "const u = new URL(process.env.NTFY_URL || 'https://ntfy.sh/你的频道');",
+  "const u = new URL(process.env.NTFY_URL || 'https://ntfy.sh/your-topic');",
   "const format = process.env.NTFY_FORMAT || 'ntfy';",
   "const title = process.env.NTFY_TITLE || 'DSH';",
   "const message = process.env.NTFY_BODY || '';",
@@ -162,6 +163,7 @@ export default {
           format: v && (v.format === 'text' || v.format === 'json') ? v.format : 'ntfy',
           jsonTemplate: v && typeof v.jsonTemplate === 'string' ? v.jsonTemplate : '',
           aiSummary: v && typeof v.aiSummary === 'boolean' ? v.aiSummary : false,
+          notifyInteract: v && typeof v.notifyInteract === 'boolean' ? v.notifyInteract : true,
         }
       } catch (e) {
         beat('readConfig error: ' + (e && e.message ? e.message : String(e)))
@@ -180,6 +182,7 @@ export default {
         format: patch.format === 'text' || patch.format === 'json' ? patch.format : cur.format,
         jsonTemplate: typeof patch.jsonTemplate === 'string' ? patch.jsonTemplate : cur.jsonTemplate,
         aiSummary: typeof patch.aiSummary === 'boolean' ? patch.aiSummary : cur.aiSummary,
+        notifyInteract: typeof patch.notifyInteract === 'boolean' ? patch.notifyInteract : cur.notifyInteract,
       }
       const settings = ctx.get('settings')
       if (settings !== undefined) {
@@ -244,6 +247,18 @@ export default {
     const startKey = (agent, turn) => (agent && agent.id) + ':' + turn
     const starts = new Map()
 
+    // 鍏变韩鍙戦€侊細浠绘剰鏍囬/姝ｆ枃/浼樺厛绾э紙fire-and-forget锛?    const push = (cfg, title, body, priority) => {
+      beat('push: ' + title + ' | ' + body)
+      ctx.subprocess.spawn({
+        argv: ['D:\\nodejs\\node.exe', '-e', SENDER],
+        cwd: 'F:\\trae1\\灏忕背鎵嬬幆10pro鑱旈€?,
+        stdio: { stdin: 'ignore', stdout: { maxBytes: 4096 }, stderr: { maxBytes: 4096 } },
+        graceMs: 5000,
+        env: { NTFY_TITLE: title, NTFY_BODY: body, NTFY_PRIORITY: String(priority), NTFY_URL: cfg.endpoint, NTFY_FORMAT: cfg.format, NTFY_JSON_TEMPLATE: cfg.jsonTemplate },
+      })
+      beat('spawned')
+    }
+
     ctx.on('agent/inbox/claimed', (payload) => {
       try {
         if (!payload || !isRootAgent(payload.agent)) return
@@ -280,15 +295,7 @@ export default {
 
         const send = (body) => {
           const title = renderBody(cfg.titleTemplate || DEFAULT_TITLE, vars)
-          beat('sending: ' + body)
-          ctx.subprocess.spawn({
-            argv: ['D:\\nodejs\\node.exe', '-e', SENDER],
-            cwd: 'F:\\trae1\\灏忕背鎵嬬幆10pro鑱旈€?,
-            stdio: { stdin: 'ignore', stdout: { maxBytes: 4096 }, stderr: { maxBytes: 4096 } },
-            graceMs: 5000,
-            env: { NTFY_TITLE: title, NTFY_BODY: body, NTFY_PRIORITY: '3', NTFY_URL: cfg.endpoint, NTFY_FORMAT: cfg.format, NTFY_JSON_TEMPLATE: cfg.jsonTemplate },
-          })
-          beat('spawned')
+          push(cfg, title, body, 3)
         }
 
         if (cfg.aiSummary && text) {
@@ -302,6 +309,41 @@ export default {
       } catch (e) {
         beat('turn-stopping error: ' + (e && e.message ? e.message : String(e)))
       }
+    })
+
+    // 闇€瑕佸鎵规椂鎻愰啋锛坵aterfall锛氬繀椤绘斁琛?next锛?    ctx.on('approval/request', async (req, next) => {
+      try {
+        const cfg = readConfig()
+        if (cfg.enabled && cfg.notifyInteract && isRootAgent(req && req.agent)) {
+          const reason = req && typeof req.reason === 'string' && req.reason
+            ? req.reason
+            : (req && req.tool ? String(req.tool) : '鏈夋搷浣滈渶瑕佷綘鎵瑰噯')
+          push(cfg, '闇€瑕佸鎵?, previewOf(reason, 30), 4)
+        }
+      } catch (e) {
+        beat('approval notify error: ' + (e && e.message ? e.message : String(e)))
+      }
+      return next()
+    })
+
+    // 妯″瀷鎻愰棶鏃舵彁閱掞紙ask_user_question 宸ュ叿寮€濮嬫墽琛屾椂锛?    ctx.on('tools/execute', async (exec, next) => {
+      try {
+        if (!exec || exec.name !== 'ask_user_question') return next()
+        const cfg = readConfig()
+        if (cfg.enabled && cfg.notifyInteract && isRootAgent(exec.agent)) {
+          let q = ''
+          try {
+            const a = exec.arguments
+            if (a && Array.isArray(a.questions) && a.questions[0] && typeof a.questions[0].question === 'string') {
+              q = a.questions[0].question
+            }
+          } catch {}
+          push(cfg, '闇€瑕佷綘鍥炵瓟', q ? previewOf(q, 30) : 'AI 闂綘涓€涓棶棰橈紝鐐瑰紑鐪嬬湅', 4)
+        }
+      } catch (e) {
+        beat('question notify error: ' + (e && e.message ? e.message : String(e)))
+      }
+      return next()
     })
   },
 }
