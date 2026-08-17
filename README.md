@@ -29,9 +29,12 @@ band-notify-plugin/
 │   └── package.json         # 包定义（dsh.client 声明）
 ├── script/
 │   └── ntfy_push_test.js    # 独立发送工具（命令行/环境变量）
+├── DEVELOPMENT.md           # DSH 插件开发规范指引（官方文档 + 社区资源 + 参考实现）
 ├── config.example.json      # 配置示例（复制改名为你的配置）
 └── README.md
 ```
+
+> 想开发自己的 DSH 插件？看 [DEVELOPMENT.md](DEVELOPMENT.md)——官方规范索引、社区教程、以及本插件的实现要点。
 
 ## 安装
 
