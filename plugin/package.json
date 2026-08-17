@@ -1,5 +1,6 @@
 {
   "name": "band-notify",
+  "description": "DSH 完成提醒插件：对话结束时推送通知，支持自定义模板、AI 总结与多种发送格式（ntfy / 纯文本 / 自定义 JSON）。",
   "version": "1.0.0",
   "type": "module",
   "main": "index.js",
@@ -11,5 +12,27 @@
   "dsh": {
     "client": { "platform": "web" }
   },
-  "private": true
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lichen455/band-notify.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "notification",
+    "ntfy",
+    "cordis"
+  ],
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-llm": "~0.1.0-rc.6",
+    "@deepseek-ai/dsh-settings": "~0.1.0-rc.6",
+    "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "files": [
+    "index.js",
+    "client.js"
+  ]
 }
