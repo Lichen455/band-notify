@@ -38,6 +38,28 @@ band-notify-plugin/
 
 ## 安装
 
+### 方式一：`dsh plugin`（官方方式，需 pnpm）
+
+> `dsh plugin` 把参数转发给 profile 目录里的 pnpm，装完后若包声明了 `dsh.bundle`，会自动把它加入 profile 的 bundle 层（本插件已声明 `dsh.bundle.patch`，补丁层自带插件行，无需手改 `cordis.patch.yml`）。
+
+```powershell
+# 先装 pnpm（一次即可）
+npm install -g pnpm
+
+# 本地路径安装（未发布 npm 时，路径换成你的 plugin 目录）
+dsh plugin --profile web add "file:F:\路径\band-notify-plugin\plugin"
+
+# npm 发布后即可直接按包名安装
+# dsh plugin --profile web add band-notify
+
+# 或从 git 安装
+# dsh plugin --profile web add git+ssh://git@ssh.github.com:443/Lichen455/band-notify.git
+```
+
+> ⚠️ 开发机保留真实配置时，可继续用方式二指向运行副本；`dsh plugin` 适合全新环境 / 其它机器。
+
+### 方式二：手动安装（无需 pnpm）
+
 前置：DSH（DeepSeek Harness）Web 版，`$DSH_HOME` 即 `~/.dsh`。
 
 1. **拷贝插件**到你的 profile 目录：

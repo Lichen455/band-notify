@@ -1,0 +1,8 @@
+# band-notify bundle patch layer
+# Installed as a profile bundle via `dsh plugin --profile web add <band-notify>`;
+# this layer inserts the plugin row. The row's `name` resolves from the profile
+# directory (profile/node_modules after pnpm install).
+- insert:
+    - id: band-notify
+      name: band-notify
+      inject: [subprocess, webServer]
