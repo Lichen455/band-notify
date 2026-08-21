@@ -108,7 +108,7 @@ window.__ModuleLoader__.load({
 			// ---- 鎻掍欢閰嶇疆椤靛崱鐗囷紙涓庡畼鏂瑰崱鐗囧悓娆炬牱寮忥級----
 			slots.inject("settings.plugin.item", function() {
 				return slots.register(
-					{ name: "settings.plugin.item", id: "band-notify", order: 30 },
+					{ name: "settings.plugin.item", id: "band-notify", key: "band-notify", order: 30 },
 					function() {
 						var DEFAULT_URL = "https://ntfy.sh/your-topic";
 						var STOPS = [0, 0.5, 1, 2, 3, 5, 8, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240];
